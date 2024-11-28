@@ -131,6 +131,7 @@
         }
 
         function displayAyat(surahData, ayat) {
+            searchBar.blur()
             const ayatData = surahData?.ayat.find(a => a.nomorAyat == ayat);
             if (ayatData) {
                 resultDiv.innerHTML = `(${ayatData.nomorAyat}) <strong>${surahData.nama}</strong> <br>
