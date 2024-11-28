@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Reference Al-Qur'an</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: white;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            position: relative;
+        }
+
+        button {
+            padding: 10px;
+            width: 100%;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Quick Reference Al-Qur'an</h1>
+        <input type="text" id="search-bar" placeholder="Masukkan surat:ayat (contoh: 2 255)">
+        <button id="search-button">Cari</button>
+        <div id="result"></div>
+    </div>
+    <script>
+        const searchButton = document.getElementById('search-button');
+        const searchBar = document.getElementById('search-bar');
+        const resultDiv = document.getElementById('result');
+
+        searchButton.addEventListener('click', async () => {
+            const input = searchBar.value.trim();
+            const [surah, ayat] = input.split(':');
+
+            console.log(input);
+
+            if (!surah || !ayat) {
+                resultDiv.innerHTML = 'Format input salah. Gunakan format surat:ayat (contoh: 2 255)';
+                return;
+            }
+
+            const localStorageKey = `surah_${surah}`;
+            let surahData = JSON.parse(localStorage.getItem(localStorageKey));
+
+            if (surahData) {
+                displayAyat(surahData, ayat);
+            } else {
+                await fetchSurahData(surah, ayat);
+            }
+        });
+
+        async function fetchSurahData(surah, ayat) {
+            try {
+                const response = await fetch(`https://equran.id/api/v2/surat/${surah}`);
+                const data = await response.json();
+
+                if (data) {
+                    localStorage.setItem(`surah_${surah}`, JSON.stringify(data.data));
+                    displayAyat(data.data, ayat);
+                }
+            } catch (error) {
+                console.error('Error fetching data:', error);
+                resultDiv.innerHTML = 'Terjadi kesalahan saat mengambil data.';
+            }
+        }
+
+        function displayAyat(surahData, ayat) {
+            const ayatData = surahData?.ayat.find(a => a.nomorAyat == ayat);
+            // console.log(ayatData);
+            // console.log(ayatData.audio["01"]);
+            if (ayatData) {
+                resultDiv.innerHTML = `(${ayatData.nomorAyat}) <strong>${surahData.nama}</strong>  <br>
+                <center>
+                    <audio controls>
+                    <source src="${ayatData.audio["02"]}" type="audio/mp3">
+                    Your browser does not support the audio element.
+                    </audio> 
+                </center>
+                <br> 
+                <p style="direction: rtl; font-size: 21px;">${ayatData.teksArab}</p> 
+                <p>${ayatData.teksIndonesia}</p>`;
+            } else {
+                resultDiv.innerHTML = 'Ayat tidak ditemukan.';
+            }
+        }
+    </script>
+</body>
+
+</html>
