@@ -81,9 +81,10 @@
             const urlParams = new URLSearchParams(window.location.search);
             const surah = urlParams.get('surah');
             const ayat = urlParams.get('ayat');
+            const fontsize = urlParams.get('fontsize') || 21; // Default to 21px if not specified
 
             if (surah && ayat) {
-                fetchAndDisplayAyat(surah, ayat);
+                fetchAndDisplayAyat(surah, ayat, fontsize);
                 searchBar.value = `${surah}:${ayat}`;
             }
         });
@@ -92,9 +93,11 @@
             event.preventDefault();
             const input = searchBar.value.trim();
             const [surah, ayat] = input.split(':');
+            const fontsize = new URLSearchParams(window.location.search).get('fontsize') || 21;
+
             if (surah && ayat) {
-                updateUrlParams(surah, ayat);
-                fetchAndDisplayAyat(surah, ayat);
+                updateUrlParams(surah, ayat, fontsize);
+                fetchAndDisplayAyat(surah, ayat, fontsize);
             } else {
                 resultDiv.innerHTML = 'Format input salah. Gunakan format surat:ayat (contoh: 2:255)';
             }
@@ -108,12 +111,12 @@
             navigateAyat(-1);
         });
 
-        async function fetchAndDisplayAyat(surah, ayat) {
+        async function fetchAndDisplayAyat(surah, ayat, fontsize) {
             const localStorageKey = `surah_${surah}`;
             let surahData = JSON.parse(localStorage.getItem(localStorageKey));
 
             if (surahData) {
-                displayAyat(surahData, ayat);
+                displayAyat(surahData, ayat, fontsize);
             } else {
                 try {
                     const response = await fetch(`https://equran.id/api/v2/surat/${surah}`);
@@ -121,7 +124,7 @@
 
                     if (data) {
                         localStorage.setItem(localStorageKey, JSON.stringify(data.data));
-                        displayAyat(data.data, ayat);
+                        displayAyat(data.data, ayat, fontsize);
                     }
                 } catch (error) {
                     console.error('Error fetching data:', error);
@@ -130,7 +133,7 @@
             }
         }
 
-        function displayAyat(surahData, ayat) {
+        function displayAyat(surahData, ayat, fontsize) {
             const ayatData = surahData?.ayat.find(a => a.nomorAyat == ayat);
             if (ayatData) {
                 resultDiv.innerHTML = `(${ayatData.nomorAyat}) <strong>${surahData.nama}</strong> <br>
@@ -141,7 +144,7 @@
                     </audio>
                 </center>
                 <br> 
-                <p style="direction: rtl; font-size: 21px;">${ayatData.teksArab}</p>
+                <p style="direction: rtl; font-size: ${fontsize}px;">${ayatData.teksArab}</p>
                 <p>${ayatData.teksIndonesia}</p>`;
             } else {
                 resultDiv.innerHTML = 'Ayat tidak ditemukan.';
@@ -150,6 +153,7 @@
 
         function navigateAyat(step) {
             const [currentSurah, currentAyat] = searchBar.value.split(':').map(Number);
+            const fontsize = new URLSearchParams(window.location.search).get('fontsize') || 21;
 
             if (!currentSurah || !currentAyat) {
                 resultDiv.innerHTML = 'Masukkan format surat:ayat terlebih dahulu.';
@@ -159,15 +163,16 @@
             const newAyat = currentAyat + step;
             if (newAyat > 0) {
                 searchBar.value = `${currentSurah}:${newAyat}`;
-                updateUrlParams(currentSurah, newAyat);
-                fetchAndDisplayAyat(currentSurah, newAyat);
+                updateUrlParams(currentSurah, newAyat, fontsize);
+                fetchAndDisplayAyat(currentSurah, newAyat, fontsize);
             }
         }
 
-        function updateUrlParams(surah, ayat) {
+        function updateUrlParams(surah, ayat, fontsize) {
             const url = new URL(window.location.href);
             url.searchParams.set('surah', surah);
             url.searchParams.set('ayat', ayat);
+            url.searchParams.set('fontsize', fontsize);
             window.history.pushState({}, '', url);
         }
     </script>
