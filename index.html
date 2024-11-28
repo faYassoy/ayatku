@@ -30,16 +30,16 @@
             width: 100%;
             padding: 10px;
             margin-bottom: 10px;
-            position: relative;
         }
 
         button {
             padding: 10px;
-            width: 100%;
+            width: 49%;
             background-color: #28a745;
             color: white;
             border: none;
             cursor: pointer;
+            margin-right: 1%;
         }
 
         button:hover {
@@ -50,75 +50,125 @@
             margin-top: 20px;
             font-size: 18px;
         }
+
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
         <h1>Quick Reference Al-Qur'an</h1>
-        <input type="text" id="search-bar" placeholder="Masukkan surat:ayat (contoh: 2 255)">
-        <button id="search-button">Cari</button>
+        <form id="search-form">
+            <input type="text" id="search-bar" placeholder="Masukkan surat:ayat (contoh: 2:255)" required>
+        </form>
+        <div class="nav-buttons">
+            <button id="prev-button">Sebelumnya</button>
+            <button id="next-button">Berikutnya</button>
+        </div>
         <div id="result"></div>
     </div>
     <script>
-        const searchButton = document.getElementById('search-button');
+        const searchForm = document.getElementById('search-form');
         const searchBar = document.getElementById('search-bar');
         const resultDiv = document.getElementById('result');
+        const prevButton = document.getElementById('prev-button');
+        const nextButton = document.getElementById('next-button');
 
-        searchButton.addEventListener('click', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const surah = urlParams.get('surah');
+            const ayat = urlParams.get('ayat');
+
+            if (surah && ayat) {
+                fetchAndDisplayAyat(surah, ayat);
+                searchBar.value = `${surah}:${ayat}`;
+            }
+        });
+
+        searchForm.addEventListener('submit', (event) => {
+            event.preventDefault();
             const input = searchBar.value.trim();
             const [surah, ayat] = input.split(':');
-
-            console.log(input);
-
-            if (!surah || !ayat) {
-                resultDiv.innerHTML = 'Format input salah. Gunakan format surat:ayat (contoh: 2 255)';
-                return;
+            if (surah && ayat) {
+                updateUrlParams(surah, ayat);
+                fetchAndDisplayAyat(surah, ayat);
+            } else {
+                resultDiv.innerHTML = 'Format input salah. Gunakan format surat:ayat (contoh: 2:255)';
             }
+        });
 
+        nextButton.addEventListener('click', () => {
+            navigateAyat(1);
+        });
+
+        prevButton.addEventListener('click', () => {
+            navigateAyat(-1);
+        });
+
+        async function fetchAndDisplayAyat(surah, ayat) {
             const localStorageKey = `surah_${surah}`;
             let surahData = JSON.parse(localStorage.getItem(localStorageKey));
 
             if (surahData) {
                 displayAyat(surahData, ayat);
             } else {
-                await fetchSurahData(surah, ayat);
-            }
-        });
+                try {
+                    const response = await fetch(`https://equran.id/api/v2/surat/${surah}`);
+                    const data = await response.json();
 
-        async function fetchSurahData(surah, ayat) {
-            try {
-                const response = await fetch(`https://equran.id/api/v2/surat/${surah}`);
-                const data = await response.json();
-
-                if (data) {
-                    localStorage.setItem(`surah_${surah}`, JSON.stringify(data.data));
-                    displayAyat(data.data, ayat);
+                    if (data) {
+                        localStorage.setItem(localStorageKey, JSON.stringify(data.data));
+                        displayAyat(data.data, ayat);
+                    }
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                    resultDiv.innerHTML = 'Terjadi kesalahan saat mengambil data.';
                 }
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                resultDiv.innerHTML = 'Terjadi kesalahan saat mengambil data.';
             }
         }
 
         function displayAyat(surahData, ayat) {
             const ayatData = surahData?.ayat.find(a => a.nomorAyat == ayat);
-            // console.log(ayatData);
-            // console.log(ayatData.audio["01"]);
             if (ayatData) {
-                resultDiv.innerHTML = `(${ayatData.nomorAyat}) <strong>${surahData.nama}</strong>  <br>
+                resultDiv.innerHTML = `(${ayatData.nomorAyat}) <strong>${surahData.nama}</strong> <br>
                 <center>
                     <audio controls>
-                    <source src="${ayatData.audio["02"]}" type="audio/mp3">
-                    Your browser does not support the audio element.
-                    </audio> 
+                        <source src="${ayatData.audio["02"]}" type="audio/mp3">
+                        Your browser does not support the audio element.
+                    </audio>
                 </center>
                 <br> 
-                <p style="direction: rtl; font-size: 21px;">${ayatData.teksArab}</p> 
+                <p style="direction: rtl; font-size: 21px;">${ayatData.teksArab}</p>
                 <p>${ayatData.teksIndonesia}</p>`;
             } else {
                 resultDiv.innerHTML = 'Ayat tidak ditemukan.';
             }
+        }
+
+        function navigateAyat(step) {
+            const [currentSurah, currentAyat] = searchBar.value.split(':').map(Number);
+
+            if (!currentSurah || !currentAyat) {
+                resultDiv.innerHTML = 'Masukkan format surat:ayat terlebih dahulu.';
+                return;
+            }
+
+            const newAyat = currentAyat + step;
+            if (newAyat > 0) {
+                searchBar.value = `${currentSurah}:${newAyat}`;
+                updateUrlParams(currentSurah, newAyat);
+                fetchAndDisplayAyat(currentSurah, newAyat);
+            }
+        }
+
+        function updateUrlParams(surah, ayat) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('surah', surah);
+            url.searchParams.set('ayat', ayat);
+            window.history.pushState({}, '', url);
         }
     </script>
 </body>
