@@ -133,7 +133,7 @@
             }
         }
 
-        function displayAyat(surahData, ayat) {
+        function displayAyat(surahData, ayat, fontsize) {
             searchBar.blur()
             const ayatData = surahData?.ayat.find(a => a.nomorAyat == ayat);
             if (ayatData) {
