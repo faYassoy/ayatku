@@ -50,7 +50,23 @@
             margin-top: 20px;
             font-size: 18px;
         }
+        .indF {
+            position: absolute;
+            top: 5vh;
+            height: 8px;
+            width: 100px;
+            background-color: #28a745;
+            border-radius: 99999px;
+        }
 
+        .indL {
+            position: absolute;
+            top: 5vh;
+            height: 8px;
+            width: 100px;
+            background-color: #3e3e3e13;
+            border-radius: 99999px;
+        }
         .nav-buttons {
             display: flex;
             justify-content: space-between;
@@ -64,6 +80,7 @@
         <form id="search-form">
             <input type="text" id="search-bar" placeholder="Masukkan surat:ayat (contoh: 2:255)" required>
         </form>
+        <div id="message-container"></div>
         <div class="nav-buttons">
             <button id="prev-button">Sebelumnya</button>
             <button id="next-button">Berikutnya</button>
@@ -74,6 +91,7 @@
         const searchForm = document.getElementById('search-form');
         const searchBar = document.getElementById('search-bar');
         const resultDiv = document.getElementById('result');
+        const messageDiv = document.getElementById('message-container');
         const prevButton = document.getElementById('prev-button');
         const nextButton = document.getElementById('next-button');
 
@@ -117,14 +135,17 @@
 
             if (surahData) {
                 displayAyat(surahData, ayat, fontsize);
+                messageDiv.innerHTML = '<span class="indL"></span>'
             } else {
                 try {
+                    messageDiv.innerHTML = '<span class="indF"></span>'
                     const response = await fetch(`https://equran.id/api/v2/surat/${surah}`);
                     const data = await response.json();
 
                     if (data) {
                         localStorage.setItem(localStorageKey, JSON.stringify(data.data));
                         displayAyat(data.data, ayat, fontsize);
+                        messageDiv.innerHTML = '<span class="indL"></span>'
                     }
                 } catch (error) {
                     console.error('Error fetching data:', error);
@@ -145,7 +166,7 @@
                     </audio>
                 </center>
                 <br> 
-                <p style="direction: rtl; font-size: ${fontsize}px;">${ayatData.teksArab}</p>
+                <p style="direction: rtl; font-size: ${fontsize}px;font-family: LPMQ Isep Misbah;">${ayatData.teksArab}</p>
                 <p>${ayatData.teksIndonesia}</p>`;
             } else {
                 resultDiv.innerHTML = 'Ayat tidak ditemukan.';
