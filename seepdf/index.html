@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDF Viewer</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    .container {
+      position: relative;
+      width: 100%;
+      height: 100%;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 10%;
+      background: transparent; /* Transparan agar tetap terlihat */
+      pointer-events: none; /* Menghindari interaksi */
+    }
+    .overlay-blocker {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 10%;
+      background: transparent; /* Transparan untuk tetap menampilkan iframe */
+      pointer-events: all; /* Mencegah klik ke iframe */
+    }
+  </style>
+  <script>
+    // Fetch and validate the URL parameter
+    window.onload = function () {
+      const params = new URLSearchParams(window.location.search);
+      const fileUrl = params.get('file');
+      if (!fileUrl || !fileUrl.includes('drive.google.com')) {
+        alert("Invalid or missing file URL parameter.");
+        return;
+      }
+      const embedUrl = fileUrl.replace('/view', '/preview');
+      const iframe = document.getElementById('pdfViewer');
+      iframe.src = embedUrl;
+    };
+  </script>
+</head>
+<body>
+  <div class="container">
+    <iframe id="pdfViewer" src=""></iframe>
+    <!-- Overlay untuk membuat konten iframe unclickable -->
+    <div class="overlay-blocker"></div>
+  </div>
+</body>
+</html>
