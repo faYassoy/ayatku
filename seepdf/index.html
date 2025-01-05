@@ -1,65 +1,87 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>PDF Viewer</title>
   <style>
-    body, html {
+    body,
+    html {
       margin: 0;
       padding: 0;
       height: 100%;
       overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: Arial, sans-serif;
     }
+
     .container {
       position: relative;
-      width: 100%;
+      width: 100vw;
       height: 100%;
     }
+
     iframe {
       width: 100%;
       height: 100%;
       border: none;
     }
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 10%;
-      background: transparent; /* Transparan agar tetap terlihat */
-      pointer-events: none; /* Menghindari interaksi */
-    }
+
     .overlay-blocker {
       position: absolute;
       top: 0;
       left: 0;
       width: 100%;
       height: 10%;
-      background: transparent; /* Transparan untuk tetap menampilkan iframe */
-      pointer-events: all; /* Mencegah klik ke iframe */
+      background: transparent;
+      pointer-events: all;
+    }
+
+    .url-input {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      text-align: center;
+    }
+
+    input {
+      padding: 0.5rem;
+      width: 80%;
+      font-size: 1rem;
+    }
+
+    button {
+      padding: 0.5rem;
+      font-size: 1rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
     }
   </style>
   <script>
-    // Fetch and validate the URL parameter
-    window.onload = function () {
-      const params = new URLSearchParams(window.location.search);
-      const fileUrl = params.get('file');
-      if (!fileUrl || !fileUrl.includes('drive.google.com')) {
-        alert("Invalid or missing file URL parameter.");
-        return;
-      }
-      const embedUrl = fileUrl.replace('/view', '/preview');
-      const iframe = document.getElementById('pdfViewer');
-      iframe.src = embedUrl;
-    };
+   function encrypt(e){return btoa(e)}function decrypt(e){try{return atob(e)}catch{return null}}function submitUrl(){let e=document.getElementById("urlInput").value;if(!e.includes("drive.google.com")){alert("Please enter a valid Google Drive URL.");return}let t=encrypt(e);window.location.search=`?file=${t}`}document.addEventListener("contextmenu",e=>e.preventDefault()),document.addEventListener("keydown",e=>{"F12"===e.key&&e.preventDefault(),e.ctrlKey&&e.shiftKey&&"I"===e.key&&e.preventDefault()}),window.onload=function(){let e=new URLSearchParams(window.location.search),t=e.get("file"),n=document.querySelector(".container"),r=document.getElementById("pdfViewer");if(t){let l=decrypt(t);if(l&&l.includes("drive.google.com")){let i=l.replace("/view","/preview");r.src=i;return}}n.innerHTML=`
+        <div class="url-input">
+          <h2>Enter Google Drive PDF URL</h2>
+          <input type="text" id="urlInput" placeholder="Enter your Google Drive file URL">
+          <button onclick="submitUrl()">Submit</button>
+        </div>
+      `};
   </script>
 </head>
+
 <body>
   <div class="container">
     <iframe id="pdfViewer" src=""></iframe>
-    <!-- Overlay untuk membuat konten iframe unclickable -->
     <div class="overlay-blocker"></div>
   </div>
 </body>
+
 </html>
