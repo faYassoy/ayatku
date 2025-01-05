@@ -43,13 +43,15 @@
     .url-input {
       display: flex;
       flex-direction: column;
+      justify-items: center;
       gap: 1rem;
       text-align: center;
+      padding: 20px;
     }
 
     input {
       padding: 0.5rem;
-      width: 80%;
+      width: auto;
       font-size: 1rem;
     }
 
@@ -68,16 +70,21 @@
   </style>
   <script>
    function encrypt(e){return btoa(e)}function decrypt(e){try{return atob(e)}catch{return null}}function submitUrl(){let e=document.getElementById("urlInput").value;if(!e.includes("drive.google.com")){alert("Please enter a valid Google Drive URL.");return}let t=encrypt(e);window.location.search=`?file=${t}`}document.addEventListener("contextmenu",e=>e.preventDefault()),document.addEventListener("keydown",e=>{"F12"===e.key&&e.preventDefault(),e.ctrlKey&&e.shiftKey&&"I"===e.key&&e.preventDefault()}),window.onload=function(){let e=new URLSearchParams(window.location.search),t=e.get("file"),n=document.querySelector(".container"),r=document.getElementById("pdfViewer");if(t){let l=decrypt(t);if(l&&l.includes("drive.google.com")){let i=l.replace("/view","/preview");r.src=i;return}}n.innerHTML=`
+   <center>
+    <h2>PDF Viewer</h2>
+    <h4>Make your pdf title harder to download</h4>
+    </center>
         <div class="url-input">
-          <h2>Enter Google Drive PDF URL</h2>
           <input type="text" id="urlInput" placeholder="Enter your Google Drive file URL">
           <button onclick="submitUrl()">Submit</button>
         </div>
       `};
+      function copyToClipboard(o){navigator.clipboard.writeText(o).then(()=>{alert("URL copied to clipboard!")}).catch(()=>{alert("Failed to copy URL to clipboard.")})}
   </script>
 </head>
 
 <body>
+  <button style="position: absolute;top: 10px; right: 20px; z-index: 30;" onclick="copyToClipboard()">copy URL</button>
   <div class="container">
     <iframe id="pdfViewer" src=""></iframe>
     <div class="overlay-blocker"></div>
